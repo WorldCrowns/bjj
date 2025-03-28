@@ -1,45 +1,93 @@
-/* Basic styling for BJJ Tournament Manager admin pages */
-.bjj-tab-content {
-    margin: 20px 0;
-}
-
-#fight-order-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    width: 60%;
-}
-
-#fight-order-list li {
-    margin: 5px 0;
-    padding: 10px;
-    background: #f7f7f7;
-    border: 1px solid #ddd;
-    cursor: move;
-}
-
-.bjj-bracket {
-    display: flex;
-    justify-content: space-between;
-}
-
-.bjj-bracket .bracket-round {
-    width: 30%;
+/* Bracket Header */
+.bjj-bracket-header {
     background: #f1f1f1;
+    border-bottom: 1px solid #ccc;
     padding: 10px;
-    border-radius: 3px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.bjj-bracket-header h2 {
+    font-size: 1.3em;
+    margin: 0 0 5px;
+    text-transform: uppercase;
+}
+.bjj-bracket-header p {
+    margin: 0;
+    font-size: 0.9em;
+    color: #666;
 }
 
-/* Competitor images and academy icons */
-.bjj-competitor-img {
-    width: 50px;
-    height: auto;
-    border-radius: 50%;
+/* Bracket Container */
+.bjj-bracket-container {
+    display: flex;
+    gap: 80px; /* Large gap to accommodate lines */
+    overflow-x: auto;
+    padding-bottom: 20px;
 }
 
-.bjj-academy-icon {
-    width: 20px;
-    height: auto;
-    vertical-align: middle;
-    margin-right: 5px;
+/* Each Round */
+.bjj-bracket-round {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
 }
+.bjj-bracket-round h3 {
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* Match Box */
+.bjj-match-box {
+    position: relative;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin: 20px 0;
+    width: 180px;
+    text-align: center;
+}
+
+/* Competitors */
+.bjj-competitor {
+    margin: 4px 0;
+    font-weight: 500;
+}
+.bjj-winner {
+    color: #0073aa;
+    font-weight: 600;
+}
+.bjj-match-id {
+    font-size: 0.75em;
+    color: #999;
+    margin-top: 5px;
+}
+
+/* Lines from one round to the next (Approximation)
+   We rely on consistent vertical spacing for a rough alignment.
+   For perfect alignment, you'd typically need JS to position the lines or a library. */
+
+/* Draw a small line to the right edge of each match box */
+.bjj-match-box::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -40px; /* 40px extends halfway into the gap */
+    width: 40px;
+    height: 2px;
+    background: #ccc;
+}
+
+/* Hide the line for the last column (no next round) */
+.bjj-bracket-round:last-child .bjj-match-box::after {
+    display: none;
+}
+
+/*
+   Optionally, you can draw lines from the next round's match box back to these.
+   That requires logic to identify which match in the next round depends on this match.
+   Usually, a library or JavaScript calculates these positions precisely.
+*/

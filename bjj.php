@@ -53,39 +53,58 @@ add_action( 'wp_ajax_bjj_update_live_data', 'bjj_update_live_data' );
  * @param array $competitors Array of competitor data keyed by competitor ID.
  * @return array Generated bracket structure.
  */
-function bjj_generate_bracket_structure( $competitors ) {
-    $num_competitors = count( $competitors );
-    // If no competitors, return empty structure.
-    if ( $num_competitors == 0 ) {
-        return array();
+if ( ! function_exists( 'bjj_generate_bracket_structure' ) ) {
+    function bjj_generate_bracket_structure( $competitors ) {
+        $num_competitors = count( $competitors );
+        // If no competitors, return empty structure.
+        if ( $num_competitors == 0 ) {
+            return array();
+        }
+        
+        // Calculate total rounds (next power of two).
+        $total_rounds = ceil( log( $num_competitors, 2 ) );
+        $bracket_size = pow( 2, $total_rounds );
+        
+        // Get competitor IDs; add null for byes if needed.
+        $competitor_ids = array_keys( $competitors );
+        while ( count( $competitor_ids ) < $bracket_size ) {
+            $competitor_ids[] = null;
+        }
+        
+        // Generate first round matches.
+        $round1_matches = array();
+        for ( $i = 0; $i < $bracket_size; $i += 2 ) {
+            $match_id = 'round1_match_' . ( ( $i / 2 ) + 1 );
+            $round1_matches[ $match_id ] = array(
+                'competitor_a' => $competitor_ids[ $i ],
+                'competitor_b' => $competitor_ids[ $i + 1 ],
+            );
+        }
+        
+        $bracket_structure = array();
+        $bracket_structure['round1'] = $round1_matches;
+        
+        // Generate subsequent rounds.
+        $prev_round = 'round1';
+        for ( $round = 2; $round <= $total_rounds; $round++ ) {
+            $prev_matches = $bracket_structure[ $prev_round ];
+            $current_round_matches = array();
+            $prev_match_ids = array_keys( $prev_matches );
+            $match_number = 1;
+            
+            for ( $i = 0; $i < count( $prev_match_ids ); $i += 2 ) {
+                $current_match_id = 'round' . $round . '_match_' . $match_number;
+                $first_source = $prev_match_ids[ $i ];
+                $second_source = isset( $prev_match_ids[ $i + 1 ] ) ? $prev_match_ids[ $i + 1 ] : null;
+                $current_round_matches[ $current_match_id ] = array(
+                    'winner_of' => array( $first_source, $second_source ),
+                );
+                $match_number++;
+            }
+            $bracket_structure['round' . $round] = $current_round_matches;
+            $prev_round = 'round' . $round;
+        }
+        
+        return $bracket_structure;
     }
-    
-    // Calculate total rounds (next power of two).
-    $total_rounds = ceil( log( $num_competitors, 2 ) );
-    $bracket_size = pow( 2, $total_rounds );
-    
-    // Get competitor IDs; add null for byes if needed.
-    $competitor_ids = array_keys( $competitors );
-    while ( count( $competitor_ids ) < $bracket_size ) {
-        $competitor_ids[] = null;
-    }
-    
-    // Generate first round matches.
-    $round1_matches = array();
-    for ( $i = 0; $i < $bracket_size; $i += 2 ) {
-        $match_id = 'round1_match_' . ( ( $i / 2 ) + 1 );
-        $round1_matches[ $match_id ] = array(
-            'competitor_a' => $competitor_ids[ $i ],
-            'competitor_b' => $competitor_ids[ $i + 1 ],
-        );
-    }
-    
-    $bracket_structure = array();
-    $bracket_structure['round1'] = $round1_matches;
-    
-    // Generate subsequent rounds.
-    $prev_round = 'round1';
-    for ( $round = 2; $round <= $total_rounds; $round++ ) {
-        $prev_matches = $bracket_structure[ $prev_round ];
-        $current_round_matches = array();
-        $
+}
