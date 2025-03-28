@@ -1,30 +1,43 @@
 jQuery(document).ready(function($) {
-    // Initialize sortable list for Order of Fights.
-    $("#fight-order-list").sortable({
-        placeholder: "ui-state-highlight"
-    });
-    $("#fight-order-list").disableSelection();
 
-    // Save fight order handler.
-    $("#save-fight-order").on("click", function(e) {
-        e.preventDefault();
-        var order = $("#fight-order-list").sortable("toArray", { attribute: "data-id" });
-        console.log("Fight order:", order);
-        alert("Fight order saved (placeholder)!");
+    // ===============================
+    // ORDER OF FIGHTS - DYNAMIC DRAG & DROP
+    // ===============================
+    var $fightOrderList = $("#fight-order-list");
+    
+    // Make the list sortable if the element exists
+    if ($fightOrderList.length > 0) {
+        $fightOrderList.sortable({
+            placeholder: "ui-state-highlight"
+        });
+        $fightOrderList.disableSelection();
+    }
+
+    // On form submit, gather the order and place it in the hidden input
+    $("form").on("submit", function() {
+        if ($fightOrderList.length > 0) {
+            // Get the current order of the items (based on data-id)
+            var order = $fightOrderList.sortable("toArray", { attribute: "data-id" });
+            // Set the comma-separated list in the hidden input
+            $("#fight_order_list_input").val(order.join(","));
+        }
     });
 
-    // Refresh live queue handler.
+    // ===============================
+    // LIVE TAB - AJAX REFRESH
+    // ===============================
     $("#refresh-live").on("click", function(e) {
         e.preventDefault();
         refreshLiveQueue();
     });
 
-    // AJAX call to refresh the live queue.
     function refreshLiveQueue() {
         $.ajax({
             url: bjj_ajax_object.ajax_url,
             method: "POST",
-            data: { action: "bjj_update_live_data" },
+            data: {
+                action: "bjj_update_live_data"
+            },
             success: function(response) {
                 if (response.status === "success") {
                     $("#live-queue").html("<p>" + response.data + "</p>");
@@ -35,6 +48,8 @@ jQuery(document).ready(function($) {
             }
         });
     }
-    // Optionally refresh every 10 seconds.
+
+    // Optionally auto-refresh the live queue every 10 seconds
     setInterval(refreshLiveQueue, 10000);
+
 });
