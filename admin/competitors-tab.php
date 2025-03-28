@@ -1,12 +1,13 @@
 <?php
 /**
  * Competitors Tab (Admin)
- * Allows manual entry of competitor data and displays the competitor list.
+ * Allows manual entry of competitor data (including using the media uploader for the competitor photo)
+ * and displays the competitor list.
  */
 
-// --- PROCESS FORM: Add New Competitor ---
+// Process form submission for adding a new competitor.
 if ( isset( $_POST['bjj_competitor_add_nonce'] ) && wp_verify_nonce( $_POST['bjj_competitor_add_nonce'], 'bjj_save_competitor' ) ) {
-    // Retrieve existing competitors from the options (or initialize as empty array)
+    // Retrieve existing competitors from the options (or initialize as an empty array).
     $competitors = get_option( 'bjj_competitors', array() );
     
     // Build the new competitor entry from POST data.
@@ -21,7 +22,7 @@ if ( isset( $_POST['bjj_competitor_add_nonce'] ) && wp_verify_nonce( $_POST['bjj
         'academy_icon'   => esc_url_raw( $_POST['academy_icon'] ),
         'category'       => sanitize_text_field( $_POST['category'] ),
         'age'            => intval( $_POST['age'] ),
-        'image_url'      => esc_url_raw( $_POST['image_url'] ),
+        'image_url'      => esc_url_raw( $_POST['image_url'] ), // Competitor photo URL selected via Media Library.
         'mat_assignment' => sanitize_text_field( $_POST['mat_assignment'] ),
     );
     
@@ -33,7 +34,7 @@ if ( isset( $_POST['bjj_competitor_add_nonce'] ) && wp_verify_nonce( $_POST['bjj
     echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Competitor added successfully!', 'bjj' ) . '</p></div>';
 }
 
-// --- PROCESS FORM: Update MAT Assignments for Existing Competitors ---
+// Process form submission for updating MAT assignments for existing competitors.
 if ( isset( $_POST['bjj_competitor_assign_nonce'] ) && wp_verify_nonce( $_POST['bjj_competitor_assign_nonce'], 'bjj_save_competitor_assignments' ) ) {
     $competitors = get_option( 'bjj_competitors', array() );
     if ( ! empty( $_POST['mat_assignment'] ) && is_array( $_POST['mat_assignment'] ) ) {
@@ -47,7 +48,6 @@ if ( isset( $_POST['bjj_competitor_assign_nonce'] ) && wp_verify_nonce( $_POST['
     echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Competitor assignments updated successfully!', 'bjj' ) . '</p></div>';
 }
 
-// Retrieve saved competitor data.
 $competitors = get_option( 'bjj_competitors', array() );
 ?>
 
@@ -97,8 +97,15 @@ $competitors = get_option( 'bjj_competitors', array() );
                 <td><input type="number" name="age" id="age"></td>
             </tr>
             <tr>
-                <th><label for="image_url"><?php _e( 'Competitor Picture URL', 'bjj' ); ?></label></th>
-                <td><input type="url" name="image_url" id="image_url" placeholder="http://"></td>
+                <th><label for="image_url"><?php _e( 'Competitor Photo', 'bjj' ); ?></label></th>
+                <td>
+                    <!-- Readonly text field to hold the image URL -->
+                    <input type="text" name="image_url" id="image_url" placeholder="<?php _e( 'Select a photo from the media library', 'bjj' ); ?>" readonly>
+                    <button id="upload-photo-button" class="button"><?php _e( 'Upload Photo', 'bjj' ); ?></button>
+                    <br>
+                    <!-- Image preview -->
+                    <img id="competitor-photo-preview" src="" style="max-width:100px; margin-top:10px;">
+                </td>
             </tr>
             <tr>
                 <th><label for="mat_assignment"><?php _e( 'MAT Assignment', 'bjj' ); ?></label></th>
@@ -125,7 +132,7 @@ $competitors = get_option( 'bjj_competitors', array() );
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
-                    <th><?php _e( 'Picture', 'bjj' ); ?></th>
+                    <th><?php _e( 'Photo', 'bjj' ); ?></th>
                     <th><?php _e( 'First Name', 'bjj' ); ?></th>
                     <th><?php _e( 'Last Name', 'bjj' ); ?></th>
                     <th><?php _e( 'Phone', 'bjj' ); ?></th>
@@ -142,19 +149,20 @@ $competitors = get_option( 'bjj_competitors', array() );
                 <?php if ( ! empty( $competitors ) ) : ?>
                     <?php foreach ( $competitors as $id => $comp ) : ?>
                         <tr>
-                            <td><img src="<?php echo esc_url( $comp['image_url'] ); ?>" alt="<?php echo esc_attr( $comp['first_name'] ); ?>" class="bjj-competitor-img" /></td>
+                            <td>
+                                <?php if ( ! empty( $comp['image_url'] ) ) : ?>
+                                    <img src="<?php echo esc_url( $comp['image_url'] ); ?>" alt="<?php echo esc_attr( $comp['first_name'] ); ?>" style="max-width:50px;">
+                                <?php else: ?>
+                                    <?php _e( 'No Photo', 'bjj' ); ?>
+                                <?php endif; ?>
+                            </td>
                             <td><?php echo esc_html( $comp['first_name'] ); ?></td>
                             <td><?php echo esc_html( $comp['last_name'] ); ?></td>
                             <td><?php echo esc_html( $comp['phone'] ); ?></td>
                             <td><?php echo esc_html( $comp['email'] ); ?></td>
                             <td><?php echo esc_html( $comp['country'] ); ?></td>
                             <td><?php echo esc_html( $comp['belt'] ); ?></td>
-                            <td>
-                                <?php if ( ! empty( $comp['academy_icon'] ) ) : ?>
-                                    <img src="<?php echo esc_url( $comp['academy_icon'] ); ?>" alt="<?php echo esc_attr( $comp['academy'] ); ?>" class="bjj-academy-icon" />
-                                <?php endif; ?>
-                                <?php echo esc_html( $comp['academy'] ); ?>
-                            </td>
+                            <td><?php echo esc_html( $comp['academy'] ); ?></td>
                             <td><?php echo esc_html( $comp['category'] ); ?></td>
                             <td><?php echo esc_html( $comp['age'] ); ?></td>
                             <td>
@@ -179,3 +187,33 @@ $competitors = get_option( 'bjj_competitors', array() );
         </p>
     </form>
 </div>
+
+<script>
+jQuery(document).ready(function($){
+    var mediaUploader;
+    $('#upload-photo-button').on('click', function(e) {
+        e.preventDefault();
+        // If the uploader object has already been created, reopen the dialog.
+        if ( mediaUploader ) {
+            mediaUploader.open();
+            return;
+        }
+        // Create a new media uploader.
+        mediaUploader = wp.media.frames.file_frame = wp.media({
+            title: '<?php _e( 'Choose Competitor Photo', 'bjj' ); ?>',
+            button: {
+                text: '<?php _e( 'Choose Photo', 'bjj' ); ?>'
+            },
+            multiple: false
+        });
+        // When a file is selected, grab its URL and set it as the value of our input field, and update the preview.
+        mediaUploader.on('select', function(){
+            var attachment = mediaUploader.state().get('selection').first().toJSON();
+            $('#image_url').val(attachment.url);
+            $('#competitor-photo-preview').attr('src', attachment.url);
+        });
+        // Open the uploader dialog.
+        mediaUploader.open();
+    });
+});
+</script>

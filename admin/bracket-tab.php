@@ -1,26 +1,39 @@
 <?php
 /**
- * Bracket Tab (Admin) - Fully Dynamic with a Multi-Column Layout
- * Inspired by the style shown in your screenshot (e.g., Master 5 / Male / Black / Ultra Heavy).
+ * Bracket Tab (Admin) - Fully Dynamic
+ * 1) Reads bracket info from the first competitor (division, belt, etc.)
+ * 2) Generates bracket structure (via bjj_generate_bracket_structure).
+ * 3) Displays multi-column bracket with lines.
  */
 
-// 1. Example bracket info (replace or make dynamic as needed)
-$bracket_info = array(
-    'division'    => 'Master 5',
-    'gender'      => 'Male',
-    'belt'        => 'Black',
-    'weight_class'=> 'Ultra Heavy',
-    'event_name'  => 'Pan IBJJF 2025',
-);
-
-// 2. Retrieve competitor data, match results, and generate bracket structure.
+// 1. Retrieve competitor data and match results from the DB.
 $competitors   = get_option( 'bjj_competitors', array() );
 $match_results = get_option( 'bjj_match_results', array() );
-// bjj_generate_bracket_structure() should already be defined in bjj.php
+
+// 2. Dynamically derive bracket info from the first competitor.
+$bracket_info = array(
+    'division'     => 'This will show the Competitor Categories',
+    'gender'       => '',
+    'belt'         => '',
+    'weight_class' => '',
+    'event_name'   => 'Pan IBJJF 2025',
+);
+
+if ( ! empty( $competitors ) ) {
+    // Take the first competitor in the array
+    $first_comp = reset( $competitors );
+    // Adjust the meta keys below to match your competitor data structure
+    $bracket_info['division']     = ! empty( $first_comp['division'] ) ? $first_comp['division'] : 'This will show the Competitor Categories';
+    $bracket_info['gender']       = ! empty( $first_comp['gender'] ) ? $first_comp['gender'] : '';
+    $bracket_info['belt']         = ! empty( $first_comp['belt'] ) ? $first_comp['belt'] : '';
+    $bracket_info['weight_class'] = ! empty( $first_comp['weight_class'] ) ? $first_comp['weight_class'] : '';
+}
+
+// 3. Generate bracket structure (make sure bjj_generate_bracket_structure() is defined in bjj.php).
 $bracket_structure = bjj_generate_bracket_structure( $competitors );
 
 /**
- * Helper function: Return competitor name by ID.
+ * Helper function: get competitor name by ID.
  */
 if ( ! function_exists( 'bjj_get_competitor_name' ) ) {
     function bjj_get_competitor_name( $competitor_id, $competitors ) {
@@ -33,7 +46,7 @@ if ( ! function_exists( 'bjj_get_competitor_name' ) ) {
 }
 
 /**
- * Helper function: Return the winner ID of a match from $match_results.
+ * Helper function: get the winner ID of a match.
  */
 if ( ! function_exists( 'bjj_get_match_winner' ) ) {
     function bjj_get_match_winner( $match_id, $match_results ) {
@@ -41,9 +54,27 @@ if ( ! function_exists( 'bjj_get_match_winner' ) ) {
     }
 }
 ?>
-<!-- You can move this CSS to admin-style.css if desired -->
-<style>
-    /* Bracket Header (Mimics the screenshot style) */
+
+<div class="bjj-tab-content">
+
+    <?php if ( empty( $competitors ) ) : ?>
+        <!-- No competitors at all -->
+        <p><?php _e( 'No competitors found, cannot generate bracket.', 'bjj' ); ?></p>
+        <?php return; ?>
+    <?php endif; ?>
+
+    <?php if ( empty( $bracket_structure ) ) : ?>
+        <!-- If bracket structure is empty for some reason (e.g., 0 or 1 competitor) -->
+        <p><?php _e( 'No bracket structure could be generated (not enough competitors).', 'bjj' ); ?></p>
+        <?php return; ?>
+    <?php endif; ?>
+
+    <!-- We have a bracket structure, so display the bracket header and layout -->
+
+    <style>
+    /* =======================
+       BRACKET HEADER
+    ======================= */
     .bjj-bracket-header {
         background: #f1f1f1;
         border-bottom: 1px solid #ccc;
@@ -53,7 +84,7 @@ if ( ! function_exists( 'bjj_get_match_winner' ) ) {
     }
     .bjj-bracket-header h2 {
         font-size: 1.3em;
-        margin: 0 0 5px 0;
+        margin: 0 0 5px;
         text-transform: uppercase;
     }
     .bjj-bracket-header p {
@@ -62,156 +93,148 @@ if ( ! function_exists( 'bjj_get_match_winner' ) ) {
         color: #666;
     }
 
-    /* Bracket Container */
+    /* =======================
+       BRACKET CONTAINER
+    ======================= */
     .bjj-bracket-container {
         display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        gap: 30px; /* spacing between rounds */
-        overflow-x: auto; /* allow horizontal scroll if many rounds */
+        gap: 80px; /* Large gap for horizontal lines */
+        overflow-x: auto;
         padding-bottom: 20px;
     }
 
-    /* Each Round Column */
     .bjj-bracket-round {
         display: flex;
         flex-direction: column;
-        gap: 20px;
-        min-width: 220px; /* enough space for match boxes */
+        align-items: center;
+        position: relative;
     }
     .bjj-bracket-round h3 {
-        text-align: center;
         margin-bottom: 10px;
         text-transform: uppercase;
         font-size: 0.9em;
         color: #555;
     }
 
-    /* Match Box */
+    /* =======================
+       MATCH BOX
+    ======================= */
     .bjj-match-box {
+        position: relative;
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 4px;
-        padding: 8px 10px;
+        padding: 10px 12px;
+        margin: 20px 0;
+        width: 180px;
         text-align: center;
-        position: relative;
     }
-    .bjj-match-box .bjj-competitor {
-        display: block;
+
+    .bjj-competitor {
         margin: 4px 0;
         font-weight: 500;
     }
-    .bjj-match-box .bjj-winner {
-        color: #0073aa; /* highlight the winner in a different color */
+    .bjj-winner {
+        color: #0073aa;
         font-weight: 600;
     }
-    .bjj-match-box .bjj-match-id {
-        font-size: 0.8em;
+    .bjj-match-id {
+        font-size: 0.75em;
         color: #999;
-        margin-top: 6px;
+        margin-top: 5px;
     }
 
-</style>
+    /* Horizontal line extending to the next round (approximation) */
+    .bjj-match-box::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -40px;
+        width: 40px;
+        height: 2px;
+        background: #ccc;
+    }
+    /* Hide the line for the last column */
+    .bjj-bracket-round:last-child .bjj-match-box::after {
+        display: none;
+    }
+    </style>
 
-<div class="bjj-bracket-header">
-    <h2>
-        <?php
-        // e.g., "MASTER 5 / MALE / BLACK / ULTRA HEAVY"
-        echo esc_html( 
-            strtoupper( $bracket_info['division'] ) . ' / ' .
-            strtoupper( $bracket_info['gender'] ) . ' / ' .
-            strtoupper( $bracket_info['belt'] ) . ' / ' .
-            strtoupper( $bracket_info['weight_class'] )
-        );
-        ?>
-    </h2>
-    <p>
-        <?php echo esc_html( $bracket_info['event_name'] ); ?>
-    </p>
-</div>
+    <!-- Bracket Header -->
+    <div class="bjj-bracket-header">
+        <h2>
+            <?php
+            // e.g. "MASTER 5 / MALE / BLACK / ULTRA HEAVY"
+            echo esc_html(
+                strtoupper( $bracket_info['division'] ) . ' / ' .
+                strtoupper( $bracket_info['gender'] ) . ' / ' .
+                strtoupper( $bracket_info['belt'] ) . ' / ' .
+                strtoupper( $bracket_info['weight_class'] )
+            );
+            ?>
+        </h2>
+        <p><?php echo esc_html( $bracket_info['event_name'] ); ?></p>
+    </div>
 
-<div class="bjj-tab-content">
-    <?php if ( empty( $bracket_structure ) ) : ?>
-        <p><?php _e( 'No bracket structure could be generated (no competitors).', 'bjj' ); ?></p>
-    <?php else : ?>
-        <?php
-        // $bracket_structure is typically an array like:
-        // [
-        //   'round1' => [ 'round1_match_1' => ['competitor_a'=>..., 'competitor_b'=>... ], 'round1_match_2' => ... ],
-        //   'round2' => [ 'round2_match_1' => ['winner_of'=>...], ... ],
-        //   'round3' => [ ... ],
-        // ]
-        //
-        // We'll display each round as a column in a multi-column layout.
-        ?>
-        <div class="bjj-bracket-container">
-            <?php foreach ( $bracket_structure as $round_name => $matches ) : ?>
-                <div class="bjj-bracket-round">
-                    <h3><?php echo esc_html( ucfirst( $round_name ) ); ?></h3>
-                    <?php foreach ( $matches as $match_id => $match_data ) : ?>
-                        <?php
-                        // If this is a first-round match, we expect competitor_a, competitor_b.
-                        // If this is a subsequent round, we expect 'winner_of' => [ 'some_match_id', 'some_match_id' ].
-                        $winner_id = bjj_get_match_winner( $match_id, $match_results );
+    <!-- Bracket Layout -->
+    <div class="bjj-bracket-container">
+        <?php foreach ( $bracket_structure as $round_name => $matches ) : ?>
+            <div class="bjj-bracket-round" data-round="<?php echo esc_attr( $round_name ); ?>">
+                <h3><?php echo esc_html( ucfirst( $round_name ) ); ?></h3>
+                <?php foreach ( $matches as $match_id => $match_data ) : 
+                    $winner_id = bjj_get_match_winner( $match_id, $match_results );
+                    $competitor_lines = array();
 
-                        // Decide how to display the competitors:
-                        $competitor_lines = array();
+                    // FIRST ROUND MATCH
+                    if ( isset( $match_data['competitor_a'] ) ) {
+                        $comp_a_id = $match_data['competitor_a'];
+                        $comp_b_id = $match_data['competitor_b'];
 
-                        if ( isset( $match_data['competitor_a'] ) ) {
-                            // First round match
-                            $comp_a_id = $match_data['competitor_a'];
-                            $comp_b_id = $match_data['competitor_b'];
-                            // Build lines with possible winner highlight
-                            $comp_a_name = bjj_get_competitor_name( $comp_a_id, $competitors );
-                            $comp_b_name = bjj_get_competitor_name( $comp_b_id, $competitors );
+                        $comp_a_name = bjj_get_competitor_name( $comp_a_id, $competitors );
+                        $comp_b_name = bjj_get_competitor_name( $comp_b_id, $competitors );
 
-                            // Mark the winner if any
-                            if ( $winner_id === $comp_a_id ) {
-                                $comp_a_name = '<span class="bjj-winner">' . esc_html( $comp_a_name ) . '</span>';
-                            }
-                            if ( $winner_id === $comp_b_id ) {
-                                $comp_b_name = '<span class="bjj-winner">' . esc_html( $comp_b_name ) . '</span>';
-                            }
-
-                            $competitor_lines[] = $comp_a_name;
-                            $competitor_lines[] = $comp_b_name;
-                        } elseif ( isset( $match_data['winner_of'] ) ) {
-                            // Later round match
-                            $source_matches = $match_data['winner_of']; // e.g. ['round1_match_1','round1_match_2']
-                            $comp_a_id = bjj_get_match_winner( $source_matches[0], $match_results );
-                            $comp_b_id = null;
-                            if ( isset( $source_matches[1] ) ) {
-                                $comp_b_id = bjj_get_match_winner( $source_matches[1], $match_results );
-                            }
-
-                            $comp_a_name = ( $comp_a_id ) ? bjj_get_competitor_name( $comp_a_id, $competitors ) : __( 'TBD', 'bjj' );
-                            $comp_b_name = ( $comp_b_id ) ? bjj_get_competitor_name( $comp_b_id, $competitors ) : __( 'TBD', 'bjj' );
-
-                            // Highlight winner
-                            if ( $winner_id === $comp_a_id && $comp_a_id ) {
-                                $comp_a_name = '<span class="bjj-winner">' . esc_html( $comp_a_name ) . '</span>';
-                            }
-                            if ( $winner_id === $comp_b_id && $comp_b_id ) {
-                                $comp_b_name = '<span class="bjj-winner">' . esc_html( $comp_b_name ) . '</span>';
-                            }
-
-                            $competitor_lines[] = $comp_a_name;
-                            $competitor_lines[] = $comp_b_name;
+                        if ( $winner_id === $comp_a_id ) {
+                            $comp_a_name = '<span class="bjj-winner">' . esc_html( $comp_a_name ) . '</span>';
                         }
-                        ?>
-                        <div class="bjj-match-box">
-                            <?php
-                            // Print competitor lines
-                            foreach ( $competitor_lines as $line ) {
-                                echo '<div class="bjj-competitor">' . $line . '</div>';
-                            }
-                            // Show match ID at the bottom
-                            echo '<div class="bjj-match-id">' . esc_html( $match_id ) . '</div>';
-                            ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+                        if ( $winner_id === $comp_b_id ) {
+                            $comp_b_name = '<span class="bjj-winner">' . esc_html( $comp_b_name ) . '</span>';
+                        }
+
+                        $competitor_lines[] = $comp_a_name;
+                        $competitor_lines[] = $comp_b_name;
+                    
+                    // SUBSEQUENT ROUND MATCH
+                    } elseif ( isset( $match_data['winner_of'] ) ) {
+                        $source_matches = $match_data['winner_of'];
+                        $comp_a_id = bjj_get_match_winner( $source_matches[0], $match_results );
+                        $comp_b_id = null;
+                        if ( isset( $source_matches[1] ) ) {
+                            $comp_b_id = bjj_get_match_winner( $source_matches[1], $match_results );
+                        }
+
+                        $comp_a_name = $comp_a_id ? bjj_get_competitor_name( $comp_a_id, $competitors ) : __( 'TBD', 'bjj' );
+                        $comp_b_name = $comp_b_id ? bjj_get_competitor_name( $comp_b_id, $competitors ) : __( 'TBD', 'bjj' );
+
+                        if ( $winner_id === $comp_a_id && $comp_a_id ) {
+                            $comp_a_name = '<span class="bjj-winner">' . esc_html( $comp_a_name ) . '</span>';
+                        }
+                        if ( $winner_id === $comp_b_id && $comp_b_id ) {
+                            $comp_b_name = '<span class="bjj-winner">' . esc_html( $comp_b_name ) . '</span>';
+                        }
+
+                        $competitor_lines[] = $comp_a_name;
+                        $competitor_lines[] = $comp_b_name;
+                    }
+                    ?>
+                    <div class="bjj-match-box" data-match-id="<?php echo esc_attr( $match_id ); ?>">
+                        <?php foreach ( $competitor_lines as $line ) : ?>
+                            <div class="bjj-competitor"><?php echo wp_kses_post( $line ); ?></div>
+                        <?php endforeach; ?>
+                        <div class="bjj-match-id"><?php echo esc_html( $match_id ); ?></div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
 </div>
