@@ -1,7 +1,5 @@
-admin-style.css
-
-/* Basic styling for the Tournament Manager admin pages */
-.tm-tab-content {
+/* Basic styling for BJJ Tournament Manager admin pages */
+.bjj-tab-content {
     margin: 20px 0;
 }
 
@@ -20,26 +18,26 @@ admin-style.css
     cursor: move;
 }
 
-.tm-bracket {
+.bjj-bracket {
     display: flex;
     justify-content: space-between;
 }
 
-.tm-bracket .bracket-round {
+.bjj-bracket .bracket-round {
     width: 30%;
     background: #f1f1f1;
     padding: 10px;
     border-radius: 3px;
 }
 
-/* New styles for competitor images and academy icons */
-.tm-competitor-img {
+/* Competitor images and academy icons */
+.bjj-competitor-img {
     width: 50px;
     height: auto;
     border-radius: 50%;
 }
 
-.tm-academy-icon {
+.bjj-academy-icon {
     width: 20px;
     height: auto;
     vertical-align: middle;

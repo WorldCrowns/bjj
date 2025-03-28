@@ -1,51 +1,43 @@
-result-tab.php
 <?php
 /**
- * Result Tab
- * Allows you to enter scoring (win/lose) for fights and tracks tournament progress.
- * Also counts wins per academy/school.
+ * Result Tab (Admin)
+ * Allows entry of fight results (win/lose) and shows academy wins.
  */
 ?>
-<div class="tm-tab-content">
-    <h2><?php _e( 'Enter Results', 'tournament-manager' ); ?></h2>
-    <p><?php _e( 'Select the match and update the result.', 'tournament-manager' ); ?></p>
-    
+<div class="bjj-tab-content">
+    <h2><?php _e( 'Enter Results', 'bjj' ); ?></h2>
+    <p><?php _e( 'Select the match and update the result.', 'bjj' ); ?></p>
     <form method="post" action="">
-        <?php
-        // Security field.
-        wp_nonce_field( 'tm_save_result', 'tm_result_nonce' );
-        ?>
+        <?php wp_nonce_field( 'bjj_save_result', 'bjj_result_nonce' ); ?>
         <table class="form-table">
             <tr>
-                <th scope="row"><label for="match"><?php _e( 'Match', 'tournament-manager' ); ?></label></th>
+                <th scope="row"><label for="match"><?php _e( 'Match', 'bjj' ); ?></label></th>
                 <td>
                     <select name="match" id="match">
-                        <option value=""><?php _e( 'Select a match', 'tournament-manager' ); ?></option>
+                        <option value=""><?php _e( 'Select a match', 'bjj' ); ?></option>
                         <option value="match1">Match 1: John Doe vs Jane Smith</option>
-                        <!-- Populate dynamically -->
                     </select>
                 </td>
             </tr>
             <tr>
-                <th scope="row"><label for="result"><?php _e( 'Result', 'tournament-manager' ); ?></label></th>
+                <th scope="row"><label for="result"><?php _e( 'Result', 'bjj' ); ?></label></th>
                 <td>
                     <select name="result" id="result">
-                        <option value=""><?php _e( 'Select result', 'tournament-manager' ); ?></option>
+                        <option value=""><?php _e( 'Select result', 'bjj' ); ?></option>
                         <option value="win">Win</option>
                         <option value="lose">Lose</option>
                     </select>
                 </td>
             </tr>
         </table>
-        <?php submit_button( __( 'Save Result', 'tournament-manager' ) ); ?>
+        <?php submit_button( __( 'Save Result', 'bjj' ) ); ?>
     </form>
     <div class="academy-wins">
-        <h3><?php _e( 'Academy Wins Count', 'tournament-manager' ); ?></h3>
-        <p><?php _e( 'Display which academy/school has the most wins.', 'tournament-manager' ); ?></p>
-        <!-- Placeholder; query and display your results here -->
+        <h3><?php _e( 'Academy Wins Count', 'bjj' ); ?></h3>
+        <p><?php _e( 'Academies with the most wins:', 'bjj' ); ?></p>
         <ul>
-            <li><img src="https://via.placeholder.com/20" alt="Alpha Academy" class="tm-academy-icon"> Alpha Academy: 3 wins</li>
-            <li><img src="https://via.placeholder.com/20" alt="Beta School" class="tm-academy-icon"> Beta School: 2 wins</li>
+            <li><img src="https://via.placeholder.com/20" alt="Alpha Academy" class="bjj-academy-icon"> Alpha Academy: 3 wins</li>
+            <li><img src="https://via.placeholder.com/20" alt="Beta School" class="bjj-academy-icon"> Beta School: 2 wins</li>
         </ul>
     </div>
 </div>

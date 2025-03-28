@@ -1,37 +1,32 @@
-admin-scripts.js
 jQuery(document).ready(function($) {
-    // Initialize sortable list for Order of Fights tab.
+    // Initialize sortable list for Order of Fights.
     $("#fight-order-list").sortable({
         placeholder: "ui-state-highlight"
     });
     $("#fight-order-list").disableSelection();
 
-    // Example: Save order button click handler.
+    // Save fight order handler.
     $("#save-fight-order").on("click", function(e) {
         e.preventDefault();
         var order = $("#fight-order-list").sortable("toArray", { attribute: "data-id" });
-        // Send "order" via AJAX to save in the database.
         console.log("Fight order:", order);
         alert("Fight order saved (placeholder)!");
     });
 
-    // Live tab: refresh button handler.
+    // Refresh live queue handler.
     $("#refresh-live").on("click", function(e) {
         e.preventDefault();
         refreshLiveQueue();
     });
 
-    // Function to refresh live queue via AJAX.
+    // AJAX call to refresh the live queue.
     function refreshLiveQueue() {
         $.ajax({
-            url: tm_ajax_object.ajax_url,
+            url: bjj_ajax_object.ajax_url,
             method: "POST",
-            data: {
-                action: "tm_update_live_data"
-            },
+            data: { action: "bjj_update_live_data" },
             success: function(response) {
                 if (response.status === "success") {
-                    // Update the live queue div with returned data.
                     $("#live-queue").html("<p>" + response.data + "</p>");
                 }
             },
@@ -40,8 +35,6 @@ jQuery(document).ready(function($) {
             }
         });
     }
-
-    // Optionally, refresh the live queue automatically every 10 seconds.
+    // Optionally refresh every 10 seconds.
     setInterval(refreshLiveQueue, 10000);
 });
-

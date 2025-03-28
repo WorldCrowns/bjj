@@ -1,11 +1,8 @@
-order-of-fights-shortcode.php
-<div class="tm-shortcode-order-of-fights">
-    <h2><?php _e( 'Order of Fights', 'tournament-manager' ); ?></h2>
-    <p><?php _e( 'Drag and drop to rearrange the order of fights.', 'tournament-manager' ); ?></p>
-    
+<div class="bjj-shortcode-order-of-fights">
+    <h2><?php _e( 'Order of Fights', 'bjj' ); ?></h2>
+    <p><?php _e( 'Drag and drop to rearrange the order of fights.', 'bjj' ); ?></p>
     <ul id="fight-order-list">
         <?php
-        // Placeholder fight order data; replace with dynamic content.
         $fights = array(
             'Fight 1: John Doe vs Jane Smith',
             'Fight 2: Competitor C vs Competitor D',
@@ -16,5 +13,5 @@ order-of-fights-shortcode.php
         }
         ?>
     </ul>
-    <button id="save-fight-order" class="button button-primary"><?php _e( 'Save Order', 'tournament-manager' ); ?></button>
+    <button id="save-fight-order" class="button button-primary"><?php _e( 'Save Order', 'bjj' ); ?></button>
 </div>

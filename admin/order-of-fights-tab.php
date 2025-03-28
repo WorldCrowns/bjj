@@ -1,18 +1,15 @@
-order-of-fights-tab.php
 <?php
 /**
- * Order of Fights Tab
+ * Order of Fights Tab (Admin)
  * Displays the order of fights with drag and drop functionality.
- * Replace the placeholder data with your dynamic fight order list.
  */
 ?>
-<div class="tm-tab-content">
-    <h2><?php _e( 'Order of Fights', 'tournament-manager' ); ?></h2>
-    <p><?php _e( 'Drag and drop to rearrange the order of fights.', 'tournament-manager' ); ?></p>
-    
+<div class="bjj-tab-content">
+    <h2><?php _e( 'Order of Fights', 'bjj' ); ?></h2>
+    <p><?php _e( 'Drag and drop to rearrange the order of fights.', 'bjj' ); ?></p>
     <ul id="fight-order-list">
         <?php
-        // Placeholder: Replace with dynamic fight order list.
+        // Placeholder fight order data.
         $fights = array(
             'Fight 1: John Doe vs Jane Smith',
             'Fight 2: Competitor C vs Competitor D',
@@ -23,5 +20,5 @@ order-of-fights-tab.php
         }
         ?>
     </ul>
-    <button id="save-fight-order" class="button button-primary"><?php _e( 'Save Order', 'tournament-manager' ); ?></button>
+    <button id="save-fight-order" class="button button-primary"><?php _e( 'Save Order', 'bjj' ); ?></button>
 </div>
