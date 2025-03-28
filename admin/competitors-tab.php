@@ -1,40 +1,41 @@
 <?php
 /**
  * Competitors Tab (Admin)
- * Allows manual entry of competitor data (including using the media uploader for the competitor photo)
- * and displays the competitor list.
+ * Allows manual entry of competitor data, including:
+ * - Competitor photo (selected via the Media Library and stored as an attachment ID)
+ * - Academy icon (also selected via the Media Library and stored as an attachment ID)
+ * - Country is now chosen from a dropdown of all countries.
  */
 
-// Process form submission for adding a new competitor.
+// Handle form submission for adding a new competitor.
 if ( isset( $_POST['bjj_competitor_add_nonce'] ) && wp_verify_nonce( $_POST['bjj_competitor_add_nonce'], 'bjj_save_competitor' ) ) {
-    // Retrieve existing competitors from the options (or initialize as an empty array).
     $competitors = get_option( 'bjj_competitors', array() );
-    
+
     // Build the new competitor entry from POST data.
     $new_competitor = array(
-        'first_name'     => sanitize_text_field( $_POST['first_name'] ),
-        'last_name'      => sanitize_text_field( $_POST['last_name'] ),
-        'phone'          => sanitize_text_field( $_POST['phone'] ),
-        'email'          => sanitize_email( $_POST['email'] ),
-        'country'        => sanitize_text_field( $_POST['country'] ),
-        'belt'           => sanitize_text_field( $_POST['belt'] ),
-        'academy'        => sanitize_text_field( $_POST['academy'] ),
-        'academy_icon'   => esc_url_raw( $_POST['academy_icon'] ),
-        'category'       => sanitize_text_field( $_POST['category'] ),
-        'age'            => intval( $_POST['age'] ),
-        'image_url'      => esc_url_raw( $_POST['image_url'] ), // Competitor photo URL selected via Media Library.
-        'mat_assignment' => sanitize_text_field( $_POST['mat_assignment'] ),
+        'first_name'      => sanitize_text_field( $_POST['first_name'] ),
+        'last_name'       => sanitize_text_field( $_POST['last_name'] ),
+        'phone'           => sanitize_text_field( $_POST['phone'] ),
+        'email'           => sanitize_email( $_POST['email'] ),
+        'country'         => sanitize_text_field( $_POST['country'] ),
+        'belt'            => sanitize_text_field( $_POST['belt'] ),
+        'academy'         => sanitize_text_field( $_POST['academy'] ),
+        'academy_icon_id' => isset( $_POST['academy_icon_id'] ) ? intval( $_POST['academy_icon_id'] ) : 0,
+        'category'        => sanitize_text_field( $_POST['category'] ),
+        'age'             => intval( $_POST['age'] ),
+        'image_id'        => isset( $_POST['image_id'] ) ? intval( $_POST['image_id'] ) : 0,
+        'mat_assignment'  => sanitize_text_field( $_POST['mat_assignment'] ),
     );
-    
+
     // Generate a unique ID for the new competitor.
     $new_id = time() . rand(10, 99);
     $competitors[ $new_id ] = $new_competitor;
-    
+
     update_option( 'bjj_competitors', $competitors );
     echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Competitor added successfully!', 'bjj' ) . '</p></div>';
 }
 
-// Process form submission for updating MAT assignments for existing competitors.
+// Handle form submission for updating MAT assignments for existing competitors.
 if ( isset( $_POST['bjj_competitor_assign_nonce'] ) && wp_verify_nonce( $_POST['bjj_competitor_assign_nonce'], 'bjj_save_competitor_assignments' ) ) {
     $competitors = get_option( 'bjj_competitors', array() );
     if ( ! empty( $_POST['mat_assignment'] ) && is_array( $_POST['mat_assignment'] ) ) {
@@ -48,7 +49,32 @@ if ( isset( $_POST['bjj_competitor_assign_nonce'] ) && wp_verify_nonce( $_POST['
     echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Competitor assignments updated successfully!', 'bjj' ) . '</p></div>';
 }
 
+// Retrieve saved competitor data.
 $competitors = get_option( 'bjj_competitors', array() );
+
+// List of all countries.
+$countries = array(
+    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
+    "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+    "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Côte d'Ivoire", "Cabo Verde",
+    "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros",
+    "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia (Czech Republic)", "Democratic Republic of the Congo",
+    "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea",
+    "Estonia", "Eswatini (formerly Swaziland)", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany",
+    "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Holy See", "Honduras", "Hungary",
+    "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan",
+    "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein",
+    "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania",
+    "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar (formerly Burma)",
+    "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia",
+    "Norway", "Oman", "Pakistan", "Palau", "Palestine State", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines",
+    "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines",
+    "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore",
+    "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan",
+    "Suriname", "Sweden", "Switzerland", "Syria", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga",
+    "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
+    "United Kingdom", "United States of America", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+);
 ?>
 
 <div class="bjj-tab-content">
@@ -74,7 +100,14 @@ $competitors = get_option( 'bjj_competitors', array() );
             </tr>
             <tr>
                 <th><label for="country"><?php _e( 'Country', 'bjj' ); ?></label></th>
-                <td><input type="text" name="country" id="country"></td>
+                <td>
+                    <select name="country" id="country">
+                        <option value=""><?php _e('Select a Country', 'bjj'); ?></option>
+                        <?php foreach($countries as $country): ?>
+                            <option value="<?php echo esc_attr($country); ?>"><?php echo esc_html($country); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
             </tr>
             <tr>
                 <th><label for="belt"><?php _e( 'Belt', 'bjj' ); ?></label></th>
@@ -85,8 +118,17 @@ $competitors = get_option( 'bjj_competitors', array() );
                 <td><input type="text" name="academy" id="academy"></td>
             </tr>
             <tr>
-                <th><label for="academy_icon"><?php _e( 'Academy Icon URL', 'bjj' ); ?></label></th>
-                <td><input type="url" name="academy_icon" id="academy_icon" placeholder="http://"></td>
+                <th><label for="academy_icon_id"><?php _e( 'Academy Icon', 'bjj' ); ?></label></th>
+                <td>
+                    <!-- Hidden field for academy icon -->
+                    <input type="hidden" name="academy_icon_id" id="academy_icon_id" value="0">
+                    <div style="margin-bottom:10px;">
+                        <img id="academy-icon-preview" src="" style="max-width:100px; display:none;">
+                    </div>
+                    <button id="upload-icon-button" class="button" type="button">
+                        <?php _e( 'Select Academy Icon', 'bjj' ); ?>
+                    </button>
+                </td>
             </tr>
             <tr>
                 <th><label for="category"><?php _e( 'Category', 'bjj' ); ?></label></th>
@@ -97,14 +139,16 @@ $competitors = get_option( 'bjj_competitors', array() );
                 <td><input type="number" name="age" id="age"></td>
             </tr>
             <tr>
-                <th><label for="image_url"><?php _e( 'Competitor Photo', 'bjj' ); ?></label></th>
+                <th><label for="image_id"><?php _e( 'Competitor Photo', 'bjj' ); ?></label></th>
                 <td>
-                    <!-- Readonly text field to hold the image URL -->
-                    <input type="text" name="image_url" id="image_url" placeholder="<?php _e( 'Select a photo from the media library', 'bjj' ); ?>" readonly>
-                    <button id="upload-photo-button" class="button"><?php _e( 'Upload Photo', 'bjj' ); ?></button>
-                    <br>
-                    <!-- Image preview -->
-                    <img id="competitor-photo-preview" src="" style="max-width:100px; margin-top:10px;">
+                    <!-- Hidden field for competitor photo -->
+                    <input type="hidden" name="image_id" id="image_id" value="0">
+                    <div style="margin-bottom:10px;">
+                        <img id="competitor-photo-preview" src="" style="max-width:100px; display:none;">
+                    </div>
+                    <button id="upload-photo-button" class="button" type="button">
+                        <?php _e( 'Select Competitor Photo', 'bjj' ); ?>
+                    </button>
                 </td>
             </tr>
             <tr>
@@ -132,7 +176,8 @@ $competitors = get_option( 'bjj_competitors', array() );
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
-                    <th><?php _e( 'Photo', 'bjj' ); ?></th>
+                    <th><?php _e( 'Academy Icon', 'bjj' ); ?></th>
+                    <th><?php _e( 'Competitor Photo', 'bjj' ); ?></th>
                     <th><?php _e( 'First Name', 'bjj' ); ?></th>
                     <th><?php _e( 'Last Name', 'bjj' ); ?></th>
                     <th><?php _e( 'Phone', 'bjj' ); ?></th>
@@ -150,9 +195,28 @@ $competitors = get_option( 'bjj_competitors', array() );
                     <?php foreach ( $competitors as $id => $comp ) : ?>
                         <tr>
                             <td>
-                                <?php if ( ! empty( $comp['image_url'] ) ) : ?>
-                                    <img src="<?php echo esc_url( $comp['image_url'] ); ?>" alt="<?php echo esc_attr( $comp['first_name'] ); ?>" style="max-width:50px;">
-                                <?php else: ?>
+                                <?php
+                                $icon_url = '';
+                                if ( ! empty( $comp['academy_icon_id'] ) ) {
+                                    $icon_url = wp_get_attachment_url( $comp['academy_icon_id'] );
+                                }
+                                if ( $icon_url ) :
+                                ?>
+                                    <img src="<?php echo esc_url( $icon_url ); ?>" alt="<?php echo esc_attr( $comp['academy'] ); ?>" style="max-width:50px;">
+                                <?php else : ?>
+                                    <?php _e( 'No Icon', 'bjj' ); ?>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php
+                                $photo_url = '';
+                                if ( ! empty( $comp['image_id'] ) ) {
+                                    $photo_url = wp_get_attachment_url( $comp['image_id'] );
+                                }
+                                if ( $photo_url ) :
+                                ?>
+                                    <img src="<?php echo esc_url( $photo_url ); ?>" alt="<?php echo esc_attr( $comp['first_name'] ); ?>" style="max-width:50px;">
+                                <?php else : ?>
                                     <?php _e( 'No Photo', 'bjj' ); ?>
                                 <?php endif; ?>
                             </td>
@@ -177,7 +241,7 @@ $competitors = get_option( 'bjj_competitors', array() );
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="11"><?php _e( 'No competitors found.', 'bjj' ); ?></td>
+                        <td colspan="12"><?php _e( 'No competitors found.', 'bjj' ); ?></td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -191,29 +255,50 @@ $competitors = get_option( 'bjj_competitors', array() );
 <script>
 jQuery(document).ready(function($){
     var mediaUploader;
+
+    // Competitor Photo Uploader
     $('#upload-photo-button').on('click', function(e) {
         e.preventDefault();
-        // If the uploader object has already been created, reopen the dialog.
         if ( mediaUploader ) {
             mediaUploader.open();
             return;
         }
-        // Create a new media uploader.
         mediaUploader = wp.media.frames.file_frame = wp.media({
             title: '<?php _e( 'Choose Competitor Photo', 'bjj' ); ?>',
-            button: {
-                text: '<?php _e( 'Choose Photo', 'bjj' ); ?>'
-            },
+            button: { text: '<?php _e( 'Choose Photo', 'bjj' ); ?>' },
             multiple: false
         });
-        // When a file is selected, grab its URL and set it as the value of our input field, and update the preview.
         mediaUploader.on('select', function(){
             var attachment = mediaUploader.state().get('selection').first().toJSON();
-            $('#image_url').val(attachment.url);
-            $('#competitor-photo-preview').attr('src', attachment.url);
+            $('#image_id').val(attachment.id);
+            if ( attachment.url ) {
+                $('#competitor-photo-preview').attr('src', attachment.url).show();
+            }
         });
-        // Open the uploader dialog.
         mediaUploader.open();
+    });
+
+    // Academy Icon Uploader
+    var iconUploader;
+    $('#upload-icon-button').on('click', function(e) {
+        e.preventDefault();
+        if ( iconUploader ) {
+            iconUploader.open();
+            return;
+        }
+        iconUploader = wp.media.frames.file_frame = wp.media({
+            title: '<?php _e( 'Choose Academy Icon', 'bjj' ); ?>',
+            button: { text: '<?php _e( 'Choose Icon', 'bjj' ); ?>' },
+            multiple: false
+        });
+        iconUploader.on('select', function(){
+            var attachment = iconUploader.state().get('selection').first().toJSON();
+            $('#academy_icon_id').val(attachment.id);
+            if ( attachment.url ) {
+                $('#academy-icon-preview').attr('src', attachment.url).show();
+            }
+        });
+        iconUploader.open();
     });
 });
 </script>
