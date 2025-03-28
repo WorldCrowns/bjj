@@ -1,54 +1,39 @@
 <?php
 /**
  * Result Tab (Admin)
- * Allows you to select which competitor won each match, then saves the results.
+ * Allows you to select the winner (by competitor) for each match and saves the results.
  */
 
-// Handle form submission for match results.
+// Process match result form submission.
 if ( isset( $_POST['bjj_result_nonce'] ) && wp_verify_nonce( $_POST['bjj_result_nonce'], 'bjj_save_results' ) ) {
-    // Example approach: store results in an option (array of match_id => winner_id).
     $results = array();
     if ( ! empty( $_POST['winner'] ) && is_array( $_POST['winner'] ) ) {
         foreach ( $_POST['winner'] as $match_id => $competitor_id ) {
             $match_id      = sanitize_text_field( $match_id );
             $competitor_id = intval( $competitor_id );
-            // If competitor_id is 0 or empty, it means no selection was made.
             if ( $competitor_id > 0 ) {
                 $results[ $match_id ] = $competitor_id;
             }
         }
     }
     update_option( 'bjj_match_results', $results );
-    ?>
-    <div class="notice notice-success is-dismissible">
-        <p><?php _e( 'Match results saved successfully!', 'bjj' ); ?></p>
-    </div>
-    <?php
+    echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Match results saved successfully!', 'bjj' ) . '</p></div>';
 }
 
-// Example competitor data. In real usage, you'd fetch this from your database.
-$competitors = array(
-    1 => array( 'first_name' => 'John', 'last_name' => 'Doe' ),
-    2 => array( 'first_name' => 'Jane', 'last_name' => 'Smith' ),
-    3 => array( 'first_name' => 'Bob',  'last_name' => 'Brown' ),
-    4 => array( 'first_name' => 'Alice','last_name' => 'White' ),
-);
+// Retrieve competitor data.
+$competitors = get_option( 'bjj_competitors', array() );
 
-// Example matches. Each match references competitor IDs.
+// For demonstration, define matches manually.
+// (In practice, you might generate these from competitor entries.)
 $matches = array(
     array(
-        'id' => 'match1',
-        'competitor_a' => 1,
-        'competitor_b' => 2,
+        'id'            => 'match1',
+        'competitor_a'  => key( $competitors ),
+        'competitor_b'  => next( array_keys( $competitors ) ),
     ),
-    array(
-        'id' => 'match2',
-        'competitor_a' => 3,
-        'competitor_b' => 4,
-    ),
+    // Add additional matches as needed.
 );
 
-// Get previously saved results (if any).
 $saved_results = get_option( 'bjj_match_results', array() );
 ?>
 
@@ -56,9 +41,11 @@ $saved_results = get_option( 'bjj_match_results', array() );
     <h2><?php _e( 'Enter Results', 'bjj' ); ?></h2>
     <p><?php _e( 'Select the winner for each match.', 'bjj' ); ?></p>
 
+    <?php if ( empty( $matches ) ) : ?>
+        <p><?php _e( 'No matches available. Please create matches manually.', 'bjj' ); ?></p>
+    <?php else : ?>
     <form method="post" action="">
         <?php wp_nonce_field( 'bjj_save_results', 'bjj_result_nonce' ); ?>
-
         <table class="form-table">
             <thead>
                 <tr>
@@ -73,16 +60,14 @@ $saved_results = get_option( 'bjj_match_results', array() );
                     $match_id = $match['id'];
                     $comp_a_id = $match['competitor_a'];
                     $comp_b_id = $match['competitor_b'];
-
-                    // Display competitor names
+                    
                     $comp_a_name = isset( $competitors[ $comp_a_id ] )
                         ? $competitors[ $comp_a_id ]['first_name'] . ' ' . $competitors[ $comp_a_id ]['last_name']
                         : __( 'Unknown', 'bjj' );
                     $comp_b_name = isset( $competitors[ $comp_b_id ] )
                         ? $competitors[ $comp_b_id ]['first_name'] . ' ' . $competitors[ $comp_b_id ]['last_name']
                         : __( 'Unknown', 'bjj' );
-
-                    // Get saved winner (if any).
+                    
                     $saved_winner = isset( $saved_results[ $match_id ] ) ? $saved_results[ $match_id ] : '';
                 ?>
                 <tr>
@@ -104,16 +89,16 @@ $saved_results = get_option( 'bjj_match_results', array() );
                 <?php endforeach; ?>
             </tbody>
         </table>
-
         <p>
             <input type="submit" class="button button-primary" value="<?php esc_attr_e( 'Save Results', 'bjj' ); ?>">
         </p>
     </form>
+    <?php endif; ?>
 
     <div class="academy-wins">
         <h3><?php _e( 'Academy Wins Count', 'bjj' ); ?></h3>
         <p><?php _e( 'Display which academy/school has the most wins.', 'bjj' ); ?></p>
-        <!-- Placeholder: This is where you could show aggregated results from $saved_results. -->
+        <!-- Placeholder: You can add logic here to aggregate and display win counts per academy -->
         <ul>
             <li>Alpha Academy: 3 wins</li>
             <li>Beta School: 2 wins</li>
