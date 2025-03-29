@@ -5,18 +5,18 @@
 
 add_action( 'admin_menu', 'bjj_register_admin_menu' );
 function bjj_register_admin_menu() {
-    // Add the main menu page.
+    // Main menu page.
     add_menu_page(
-        __( 'BJJ Tournament Manager', 'bjj' ), // Page title
-        __( 'BJJ Tournament', 'bjj' ),           // Menu title
-        'manage_options',                        // Capability required
-        'bjj',                                   // Menu slug
-        'bjj_render_admin_page',                 // Callback function for page content
-        'dashicons-tickets',                     // Icon
-        6                                        // Position
+        __( 'BJJ Tournament Manager', 'bjj' ),
+        __( 'BJJ Tournament', 'bjj' ),
+        'manage_options',
+        'bjj',
+        'bjj_render_admin_page',
+        'dashicons-tickets',
+        6
     );
 
-    // Add submenu pages.
+    // Submenu pages.
     add_submenu_page(
         'bjj',
         __( 'Competitors', 'bjj' ),
@@ -75,11 +75,8 @@ function bjj_register_admin_menu() {
     );
 }
 
-/**
- * Main admin page callback that displays top navigation tabs.
- */
 function bjj_render_admin_page() {
-    // Determine the active tab from query parameter.
+    // Determine active tab from query parameter; default to Competitors.
     $current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'competitors';
     ?>
     <div class="wrap">
@@ -125,7 +122,7 @@ function bjj_render_admin_page() {
     <?php
 }
 
-// Callback functions for each submenu. They include the corresponding admin files.
+// Callback functions to include corresponding files.
 function bjj_competitors_page() {
     include_once BJJ_PLUGIN_DIR . 'admin/competitors-tab.php';
 }
