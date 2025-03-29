@@ -25,7 +25,6 @@ function bjj_register_admin_menu() {
         'bjj-competitors',
         'bjj_competitors_page'
     );
-    
     add_submenu_page(
         'bjj',
         __( 'Academies', 'bjj' ),
@@ -34,7 +33,6 @@ function bjj_register_admin_menu() {
         'bjj-academies',
         'bjj_academies_page'
     );
-    
     add_submenu_page(
         'bjj',
         __( 'Weights', 'bjj' ),
@@ -43,7 +41,6 @@ function bjj_register_admin_menu() {
         'bjj-weights',
         'bjj_weights_page'
     );
-
     add_submenu_page(
         'bjj',
         __( 'Order of Fights', 'bjj' ),
@@ -52,7 +49,6 @@ function bjj_register_admin_menu() {
         'bjj-order-of-fights',
         'bjj_order_of_fights_page'
     );
-
     add_submenu_page(
         'bjj',
         __( 'Bracket', 'bjj' ),
@@ -61,7 +57,6 @@ function bjj_register_admin_menu() {
         'bjj-bracket',
         'bjj_bracket_page'
     );
-
     add_submenu_page(
         'bjj',
         __( 'Live', 'bjj' ),
@@ -70,7 +65,6 @@ function bjj_register_admin_menu() {
         'bjj-live',
         'bjj_live_page'
     );
-
     add_submenu_page(
         'bjj',
         __( 'Result', 'bjj' ),
@@ -81,12 +75,57 @@ function bjj_register_admin_menu() {
     );
 }
 
-// Main menu page callback (redirect to Competitors page by default).
+/**
+ * Main admin page callback that displays top navigation tabs.
+ */
 function bjj_render_admin_page() {
-    bjj_competitors_page();
+    // Determine the active tab from query parameter.
+    $current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'competitors';
+    ?>
+    <div class="wrap">
+        <h1><?php _e( 'BJJ Tournament Manager', 'bjj' ); ?></h1>
+        <h2 class="nav-tab-wrapper">
+            <a href="?page=bjj&tab=competitors" class="nav-tab <?php echo ( $current_tab == 'competitors' ) ? 'nav-tab-active' : ''; ?>"><?php _e( 'Competitors', 'bjj' ); ?></a>
+            <a href="?page=bjj&tab=academies" class="nav-tab <?php echo ( $current_tab == 'academies' ) ? 'nav-tab-active' : ''; ?>"><?php _e( 'Academies', 'bjj' ); ?></a>
+            <a href="?page=bjj&tab=weights" class="nav-tab <?php echo ( $current_tab == 'weights' ) ? 'nav-tab-active' : ''; ?>"><?php _e( 'Weights', 'bjj' ); ?></a>
+            <a href="?page=bjj&tab=order-of-fights" class="nav-tab <?php echo ( $current_tab == 'order-of-fights' ) ? 'nav-tab-active' : ''; ?>"><?php _e( 'Order of Fights', 'bjj' ); ?></a>
+            <a href="?page=bjj&tab=bracket" class="nav-tab <?php echo ( $current_tab == 'bracket' ) ? 'nav-tab-active' : ''; ?>"><?php _e( 'Bracket', 'bjj' ); ?></a>
+            <a href="?page=bjj&tab=live" class="nav-tab <?php echo ( $current_tab == 'live' ) ? 'nav-tab-active' : ''; ?>"><?php _e( 'Live', 'bjj' ); ?></a>
+            <a href="?page=bjj&tab=result" class="nav-tab <?php echo ( $current_tab == 'result' ) ? 'nav-tab-active' : ''; ?>"><?php _e( 'Result', 'bjj' ); ?></a>
+        </h2>
+        <div class="bjj-admin-content">
+            <?php
+            switch ( $current_tab ) {
+                case 'academies':
+                    bjj_academies_page();
+                    break;
+                case 'weights':
+                    bjj_weights_page();
+                    break;
+                case 'order-of-fights':
+                    bjj_order_of_fights_page();
+                    break;
+                case 'bracket':
+                    bjj_bracket_page();
+                    break;
+                case 'live':
+                    bjj_live_page();
+                    break;
+                case 'result':
+                    bjj_result_page();
+                    break;
+                case 'competitors':
+                default:
+                    bjj_competitors_page();
+                    break;
+            }
+            ?>
+        </div>
+    </div>
+    <?php
 }
 
-// Callback functions for each submenu.
+// Callback functions for each submenu. They include the corresponding admin files.
 function bjj_competitors_page() {
     include_once BJJ_PLUGIN_DIR . 'admin/competitors-tab.php';
 }
