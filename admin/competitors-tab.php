@@ -1,30 +1,34 @@
 <?php
 /**
  * Competitors Tab (Admin)
- * Allows manual entry of competitor data, including:
- * - Competitor photo (selected via the Media Library and stored as an attachment ID)
- * - Academy icon (also selected via the Media Library and stored as an attachment ID)
- * - Country is now chosen from a dropdown of all countries.
+ * Allows manual entry of competitor data including:
+ * - Athlete Type (Adult/Teen) with dynamic Belt and Competition Category dropdowns.
+ * - Country dropdown.
+ * - Weight dropdown (populated from bjj_weight_options).
+ * - Academy/School dropdown (populated from bjj_academies).
+ * - Media Library selectors for Competitor Photo.
  */
 
-// Handle form submission for adding a new competitor.
+// Process form submission for adding a new competitor.
 if ( isset( $_POST['bjj_competitor_add_nonce'] ) && wp_verify_nonce( $_POST['bjj_competitor_add_nonce'], 'bjj_save_competitor' ) ) {
     $competitors = get_option( 'bjj_competitors', array() );
 
     // Build the new competitor entry from POST data.
     $new_competitor = array(
-        'first_name'      => sanitize_text_field( $_POST['first_name'] ),
-        'last_name'       => sanitize_text_field( $_POST['last_name'] ),
-        'phone'           => sanitize_text_field( $_POST['phone'] ),
-        'email'           => sanitize_email( $_POST['email'] ),
-        'country'         => sanitize_text_field( $_POST['country'] ),
-        'belt'            => sanitize_text_field( $_POST['belt'] ),
-        'academy'         => sanitize_text_field( $_POST['academy'] ),
-        'academy_icon_id' => isset( $_POST['academy_icon_id'] ) ? intval( $_POST['academy_icon_id'] ) : 0,
-        'category'        => sanitize_text_field( $_POST['category'] ),
-        'age'             => intval( $_POST['age'] ),
-        'image_id'        => isset( $_POST['image_id'] ) ? intval( $_POST['image_id'] ) : 0,
-        'mat_assignment'  => sanitize_text_field( $_POST['mat_assignment'] ),
+        'athlete_type'         => sanitize_text_field( $_POST['athlete_type'] ), // Adult or Teen
+        'first_name'           => sanitize_text_field( $_POST['first_name'] ),
+        'last_name'            => sanitize_text_field( $_POST['last_name'] ),
+        'phone'                => sanitize_text_field( $_POST['phone'] ),
+        'email'                => sanitize_email( $_POST['email'] ),
+        'country'              => sanitize_text_field( $_POST['country'] ),
+        'belt'                 => sanitize_text_field( $_POST['belt'] ),
+        // Instead of a free text input, we now store academy as an ID (from the academies tab)
+        'academy_id'           => isset( $_POST['academy_id'] ) ? intval( $_POST['academy_id'] ) : 0,
+        'competition_category' => sanitize_text_field( $_POST['competition_category'] ),
+        'age'                  => intval( $_POST['age'] ),
+        'weight'               => sanitize_text_field( $_POST['weight'] ),
+        'image_id'             => isset( $_POST['image_id'] ) ? intval( $_POST['image_id'] ) : 0,
+        'mat_assignment'       => sanitize_text_field( $_POST['mat_assignment'] ),
     );
 
     // Generate a unique ID for the new competitor.
@@ -35,7 +39,7 @@ if ( isset( $_POST['bjj_competitor_add_nonce'] ) && wp_verify_nonce( $_POST['bjj
     echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Competitor added successfully!', 'bjj' ) . '</p></div>';
 }
 
-// Handle form submission for updating MAT assignments for existing competitors.
+// Process form submission for updating MAT assignments for existing competitors.
 if ( isset( $_POST['bjj_competitor_assign_nonce'] ) && wp_verify_nonce( $_POST['bjj_competitor_assign_nonce'], 'bjj_save_competitor_assignments' ) ) {
     $competitors = get_option( 'bjj_competitors', array() );
     if ( ! empty( $_POST['mat_assignment'] ) && is_array( $_POST['mat_assignment'] ) ) {
@@ -49,8 +53,13 @@ if ( isset( $_POST['bjj_competitor_assign_nonce'] ) && wp_verify_nonce( $_POST['
     echo '<div class="notice notice-success is-dismissible"><p>' . __( 'Competitor assignments updated successfully!', 'bjj' ) . '</p></div>';
 }
 
-// Retrieve saved competitor data.
 $competitors = get_option( 'bjj_competitors', array() );
+
+// Get weight options.
+$weight_options = get_option( 'bjj_weight_options', array() );
+
+// Get academy options from the Academies Tab.
+$academies = get_option( 'bjj_academies', array() );
 
 // List of all countries.
 $countries = array(
@@ -83,6 +92,15 @@ $countries = array(
         <?php wp_nonce_field( 'bjj_save_competitor', 'bjj_competitor_add_nonce' ); ?>
         <table class="form-table">
             <tr>
+                <th><label for="athlete_type"><?php _e( 'Athlete Type', 'bjj' ); ?></label></th>
+                <td>
+                    <select name="athlete_type" id="athlete_type">
+                        <option value="Adult"><?php _e( 'Adult', 'bjj' ); ?></option>
+                        <option value="Teen"><?php _e( 'Teen', 'bjj' ); ?></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
                 <th><label for="first_name"><?php _e( 'First Name', 'bjj' ); ?></label></th>
                 <td><input type="text" name="first_name" id="first_name" required></td>
             </tr>
@@ -109,39 +127,61 @@ $countries = array(
                     </select>
                 </td>
             </tr>
+            <!-- Dynamic Belts and Competition Category will be populated via JS based on Athlete Type -->
             <tr>
                 <th><label for="belt"><?php _e( 'Belt', 'bjj' ); ?></label></th>
-                <td><input type="text" name="belt" id="belt"></td>
-            </tr>
-            <tr>
-                <th><label for="academy"><?php _e( 'Academy/School', 'bjj' ); ?></label></th>
-                <td><input type="text" name="academy" id="academy"></td>
-            </tr>
-            <tr>
-                <th><label for="academy_icon_id"><?php _e( 'Academy Icon', 'bjj' ); ?></label></th>
                 <td>
-                    <!-- Hidden field for academy icon -->
-                    <input type="hidden" name="academy_icon_id" id="academy_icon_id" value="0">
-                    <div style="margin-bottom:10px;">
-                        <img id="academy-icon-preview" src="" style="max-width:100px; display:none;">
-                    </div>
-                    <button id="upload-icon-button" class="button" type="button">
-                        <?php _e( 'Select Academy Icon', 'bjj' ); ?>
-                    </button>
+                    <select name="belt" id="belt">
+                        <!-- Options will be populated by JS -->
+                    </select>
                 </td>
             </tr>
             <tr>
-                <th><label for="category"><?php _e( 'Category', 'bjj' ); ?></label></th>
-                <td><input type="text" name="category" id="category"></td>
+                <th><label for="competition_category"><?php _e( 'Competition Category', 'bjj' ); ?></label></th>
+                <td>
+                    <select name="competition_category" id="competition_category">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </td>
+            </tr>
+            <!-- Academy Dropdown based on Academies Tab entries -->
+            <tr>
+                <th><label for="academy_id"><?php _e( 'Academy/School', 'bjj' ); ?></label></th>
+                <td>
+                    <select name="academy_id" id="academy_id">
+                        <option value=""><?php _e('Select an Academy/School', 'bjj'); ?></option>
+                        <?php 
+                        if ( ! empty( $academies ) && is_array( $academies ) ) {
+                            foreach ( $academies as $id => $academy ) {
+                                echo '<option value="' . esc_attr($id) . '">' . esc_html($academy['name']) . '</option>';
+                            }
+                        }
+                        ?>
+                    </select>
+                </td>
             </tr>
             <tr>
                 <th><label for="age"><?php _e( 'Age', 'bjj' ); ?></label></th>
                 <td><input type="number" name="age" id="age"></td>
             </tr>
             <tr>
+                <th><label for="weight"><?php _e( 'Weight (lbs)', 'bjj' ); ?></label></th>
+                <td>
+                    <select name="weight" id="weight">
+                        <option value=""><?php _e('Select Weight', 'bjj'); ?></option>
+                        <?php 
+                        if( !empty($weight_options) && is_array($weight_options) ):
+                            foreach( $weight_options as $w ): ?>
+                                <option value="<?php echo esc_attr($w); ?>"><?php echo esc_html($w); ?></option>
+                            <?php endforeach;
+                        endif;
+                        ?>
+                    </select>
+                </td>
+            </tr>
+            <tr>
                 <th><label for="image_id"><?php _e( 'Competitor Photo', 'bjj' ); ?></label></th>
                 <td>
-                    <!-- Hidden field for competitor photo -->
                     <input type="hidden" name="image_id" id="image_id" value="0">
                     <div style="margin-bottom:10px;">
                         <img id="competitor-photo-preview" src="" style="max-width:100px; display:none;">
@@ -185,8 +225,9 @@ $countries = array(
                     <th><?php _e( 'Country', 'bjj' ); ?></th>
                     <th><?php _e( 'Belt', 'bjj' ); ?></th>
                     <th><?php _e( 'Academy/School', 'bjj' ); ?></th>
-                    <th><?php _e( 'Category', 'bjj' ); ?></th>
+                    <th><?php _e( 'Competition Category', 'bjj' ); ?></th>
                     <th><?php _e( 'Age', 'bjj' ); ?></th>
+                    <th><?php _e( 'Weight (lbs)', 'bjj' ); ?></th>
                     <th><?php _e( 'MAT Assignment', 'bjj' ); ?></th>
                 </tr>
             </thead>
@@ -202,7 +243,7 @@ $countries = array(
                                 }
                                 if ( $icon_url ) :
                                 ?>
-                                    <img src="<?php echo esc_url( $icon_url ); ?>" alt="<?php echo esc_attr( $comp['academy'] ); ?>" style="max-width:50px;">
+                                    <img src="<?php echo esc_url( $icon_url ); ?>" alt="<?php echo esc_attr( $comp['academy_id'] ); ?>" style="max-width:50px;">
                                 <?php else : ?>
                                     <?php _e( 'No Icon', 'bjj' ); ?>
                                 <?php endif; ?>
@@ -226,9 +267,21 @@ $countries = array(
                             <td><?php echo esc_html( $comp['email'] ); ?></td>
                             <td><?php echo esc_html( $comp['country'] ); ?></td>
                             <td><?php echo esc_html( $comp['belt'] ); ?></td>
-                            <td><?php echo esc_html( $comp['academy'] ); ?></td>
-                            <td><?php echo esc_html( $comp['category'] ); ?></td>
+                            <td>
+                                <?php 
+                                $academy_name = '';
+                                if ( ! empty( $comp['academy_id'] ) ) {
+                                    $all_academies = get_option( 'bjj_academies', array() );
+                                    if ( isset( $all_academies[ $comp['academy_id'] ] ) ) {
+                                        $academy_name = $all_academies[ $comp['academy_id'] ]['name'];
+                                    }
+                                }
+                                echo esc_html( $academy_name );
+                                ?>
+                            </td>
+                            <td><?php echo esc_html( $comp['competition_category'] ); ?></td>
                             <td><?php echo esc_html( $comp['age'] ); ?></td>
+                            <td><?php echo esc_html( $comp['weight'] ); ?></td>
                             <td>
                                 <select name="mat_assignment[<?php echo intval( $id ); ?>]">
                                     <option value=""><?php _e( 'Select MAT', 'bjj' ); ?></option>
@@ -241,7 +294,7 @@ $countries = array(
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="12"><?php _e( 'No competitors found.', 'bjj' ); ?></td>
+                        <td colspan="13"><?php _e( 'No competitors found.', 'bjj' ); ?></td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -299,6 +352,47 @@ jQuery(document).ready(function($){
             }
         });
         iconUploader.open();
+    });
+
+    // Dynamic Dropdowns for Athlete Type, Belt, and Competition Category.
+    var adultBelts = ['White', 'Blue', 'Purple', 'Brown', 'Black'];
+    var teenBelts  = ['White', 'Gray', 'Yellow', 'Green', 'Orange'];
+
+    var adultCategories = ['Male GI - Adult', 'Female GI - Adult', 'Male NOGI - Adult', 'Female NOGI - Adult'];
+    var teenCategories  = ['Boys GI - Teens', 'Girls GI - Teens', 'Boys NOGI - Teens', 'Girls NOGI - Teens'];
+
+    function populateBeltAndCategory() {
+        var athleteType = $('#athlete_type').val();
+        var beltSelect = $('#belt');
+        var categorySelect = $('#competition_category');
+
+        beltSelect.empty();
+        categorySelect.empty();
+
+        beltSelect.append('<option value="">' + '<?php _e("Select Belt", "bjj"); ?>' + '</option>');
+        categorySelect.append('<option value="">' + '<?php _e("Select Competition Category", "bjj"); ?>' + '</option>');
+
+        if ( athleteType === 'Adult' ) {
+            $.each(adultBelts, function(i, belt) {
+                beltSelect.append('<option value="'+ belt +'">'+ belt +'</option>');
+            });
+            $.each(adultCategories, function(i, cat) {
+                categorySelect.append('<option value="'+ cat +'">'+ cat +'</option>');
+            });
+        } else if ( athleteType === 'Teen' ) {
+            $.each(teenBelts, function(i, belt) {
+                beltSelect.append('<option value="'+ belt +'">'+ belt +'</option>');
+            });
+            $.each(teenCategories, function(i, cat) {
+                categorySelect.append('<option value="'+ cat +'">'+ cat +'</option>');
+            });
+        }
+    }
+
+    // Populate on load and when athlete type changes.
+    populateBeltAndCategory();
+    $('#athlete_type').on('change', function(){
+        populateBeltAndCategory();
     });
 });
 </script>

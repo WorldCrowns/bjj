@@ -3,7 +3,7 @@
  * Plugin Name: BJJ Tournament Manager
  * Description: Organizes competitor data, manages match results, and dynamically generates a tournament bracket.
  * Version: 1.0
- * Author: Your Name
+ * Author: Richard Simo
  * Text Domain: bjj
  */
 
