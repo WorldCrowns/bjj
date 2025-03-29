@@ -1,53 +1,110 @@
 <?php
-// Create the main admin page for BJJ Tournament Manager.
-add_action( 'admin_menu', 'bjj_register_menu' );
+/**
+ * Admin Menu for BJJ Tournament Manager
+ */
 
-function bjj_register_menu() {
+add_action( 'admin_menu', 'bjj_register_admin_menu' );
+function bjj_register_admin_menu() {
+    // Add the main menu page.
     add_menu_page(
-        __( 'BJJ Tournament Manager', 'bjj' ),
-        __( 'BJJ Tournament', 'bjj' ),
-        'manage_options',
+        __( 'BJJ Tournament Manager', 'bjj' ), // Page title
+        __( 'BJJ Tournament', 'bjj' ),           // Menu title
+        'manage_options',                        // Capability required
+        'bjj',                                   // Menu slug
+        'bjj_render_admin_page',                 // Callback function for page content
+        'dashicons-tickets',                     // Icon
+        6                                        // Position
+    );
+
+    // Add submenu pages.
+    add_submenu_page(
         'bjj',
-        'bjj_render_admin_page',
-        'dashicons-tickets',
-        6
+        __( 'Competitors', 'bjj' ),
+        __( 'Competitors', 'bjj' ),
+        'manage_options',
+        'bjj-competitors',
+        'bjj_competitors_page'
+    );
+    
+    add_submenu_page(
+        'bjj',
+        __( 'Academies', 'bjj' ),
+        __( 'Academies', 'bjj' ),
+        'manage_options',
+        'bjj-academies',
+        'bjj_academies_page'
+    );
+    
+    add_submenu_page(
+        'bjj',
+        __( 'Weights', 'bjj' ),
+        __( 'Weights', 'bjj' ),
+        'manage_options',
+        'bjj-weights',
+        'bjj_weights_page'
+    );
+
+    add_submenu_page(
+        'bjj',
+        __( 'Order of Fights', 'bjj' ),
+        __( 'Order of Fights', 'bjj' ),
+        'manage_options',
+        'bjj-order-of-fights',
+        'bjj_order_of_fights_page'
+    );
+
+    add_submenu_page(
+        'bjj',
+        __( 'Bracket', 'bjj' ),
+        __( 'Bracket', 'bjj' ),
+        'manage_options',
+        'bjj-bracket',
+        'bjj_bracket_page'
+    );
+
+    add_submenu_page(
+        'bjj',
+        __( 'Live', 'bjj' ),
+        __( 'Live', 'bjj' ),
+        'manage_options',
+        'bjj-live',
+        'bjj_live_page'
+    );
+
+    add_submenu_page(
+        'bjj',
+        __( 'Result', 'bjj' ),
+        __( 'Result', 'bjj' ),
+        'manage_options',
+        'bjj-result',
+        'bjj_result_page'
     );
 }
 
+// Main menu page callback (redirect to Competitors page by default).
 function bjj_render_admin_page() {
-    $active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'competitors';
-    ?>
-    <div class="wrap">
-        <h1><?php _e( 'BJJ Tournament Manager', 'bjj' ); ?></h1>
-        <h2 class="nav-tab-wrapper">
-            <a href="?page=bjj&tab=competitors" class="nav-tab <?php echo $active_tab == 'competitors' ? 'nav-tab-active' : ''; ?>"><?php _e( 'Competitors', 'bjj' ); ?></a>
-            <a href="?page=bjj&tab=order-of-fights" class="nav-tab <?php echo $active_tab == 'order-of-fights' ? 'nav-tab-active' : ''; ?>"><?php _e( 'Order of Fights', 'bjj' ); ?></a>
-            <a href="?page=bjj&tab=bracket" class="nav-tab <?php echo $active_tab == 'bracket' ? 'nav-tab-active' : ''; ?>"><?php _e( 'Bracket', 'bjj' ); ?></a>
-            <a href="?page=bjj&tab=live" class="nav-tab <?php echo $active_tab == 'live' ? 'nav-tab-active' : ''; ?>"><?php _e( 'Live', 'bjj' ); ?></a>
-            <a href="?page=bjj&tab=result" class="nav-tab <?php echo $active_tab == 'result' ? 'nav-tab-active' : ''; ?>"><?php _e( 'Result', 'bjj' ); ?></a>
-        </h2>
-        <div id="bjj-tab-content">
-            <?php
-            switch ( $active_tab ) {
-                case 'order-of-fights':
-                    include BJJ_PLUGIN_DIR . 'admin/order-of-fights-tab.php';
-                    break;
-                case 'bracket':
-                    include BJJ_PLUGIN_DIR . 'admin/bracket-tab.php';
-                    break;
-                case 'live':
-                    include BJJ_PLUGIN_DIR . 'admin/live-tab.php';
-                    break;
-                case 'result':
-                    include BJJ_PLUGIN_DIR . 'admin/result-tab.php';
-                    break;
-                case 'competitors':
-                default:
-                    include BJJ_PLUGIN_DIR . 'admin/competitors-tab.php';
-                    break;
-            }
-            ?>
-        </div>
-    </div>
-    <?php
+    bjj_competitors_page();
+}
+
+// Callback functions for each submenu.
+function bjj_competitors_page() {
+    include_once BJJ_PLUGIN_DIR . 'admin/competitors-tab.php';
+}
+function bjj_academies_page() {
+    include_once BJJ_PLUGIN_DIR . 'admin/academies-tab.php';
+}
+function bjj_weights_page() {
+    include_once BJJ_PLUGIN_DIR . 'admin/weights-tab.php';
+}
+function bjj_order_of_fights_page() {
+    include_once BJJ_PLUGIN_DIR . 'admin/order-of-fights-tab.php';
+}
+function bjj_bracket_page() {
+    include_once BJJ_PLUGIN_DIR . 'admin/bracket-tab.php';
+}
+function bjj_live_page() {
+    include_once BJJ_PLUGIN_DIR . 'admin/live-tab.php';
+}
+function bjj_result_page() {
+    include_once BJJ_PLUGIN_DIR . 'admin/result-tab.php';
 }
