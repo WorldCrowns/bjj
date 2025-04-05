@@ -1,0 +1,17 @@
+/* assets/css/bjj-tournament-style.css */
+.wrap h1, .wrap h2 {
+    color: #333;
+}
+.form-table input[type="text"],
+.form-table input[type="email"],
+.form-table input[type="number"],
+.form-table input[type="datetime-local"],
+.form-table input[type="date"],
+.form-table textarea,
+.form-table select {
+    width: 100%;
+    max-width: 400px;
+}
+.wp-list-table {
+    margin-top: 20px;
+}
