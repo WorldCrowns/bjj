@@ -80,6 +80,4 @@ jQuery(document).ready(function($) {
             }
         });
     });
-
-    // --- Additional JS for other sections (categories, competitors, etc.) would follow a similar pattern ---
 });
