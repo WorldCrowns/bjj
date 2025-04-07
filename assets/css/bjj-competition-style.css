@@ -1,0 +1,16 @@
+.bjj-categories, .bjj-academies, .bjj-competitors, .bjj-mats, .bjj-schedule, .bjj-results {
+    margin: 20px 0;
+}
+.bjj-categories form, .bjj-academies form, .bjj-competitors form, .bjj-mats form {
+    margin-bottom: 20px;
+}
+.bjj-categories input, .bjj-academies input, .bjj-competitors input, .bjj-mats input,
+.bjj-competitors select {
+    display: block;
+    margin: 5px 0 10px;
+    width: 300px;
+    max-width: 100%;
+}
+.bjj-categories button, .bjj-academies button, .bjj-competitors button, .bjj-mats button {
+    margin-top: 10px;
+}
