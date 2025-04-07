@@ -20,20 +20,21 @@ class BJJ_Competition_Shortcodes {
 
     public function render_event() {
         ob_start();
-        echo '<div class="bjj-event">';
-        echo '<h3>Event Shortcode</h3>';
-        // Add your event UI here
-        echo '</div>';
+        ?>
+        <div class="bjj-event">
+            <h3>Event</h3>
+            <p>This is the event shortcode output.</p>
+        </div>
+        <?php
         return ob_get_clean();
     }
 
     public function render_categories() {
         ob_start();
-        // A simple form to add categories & belt divisions
         ?>
         <div class="bjj-categories">
             <h3>Create / Manage Categories & Divisions</h3>
-            <form id="bjj-category-form">
+            <form id="bjj-category-form" method="post" action="#">
                 <label>Category Name (e.g. MALE ADULT GI):</label>
                 <input type="text" name="category_name" required />
                 <label>Belt/Division (e.g. White, Blue, Purple...):</label>
@@ -65,11 +66,11 @@ class BJJ_Competition_Shortcodes {
         ?>
         <div class="bjj-academies">
             <h3>Create / Manage Academies</h3>
-            <form id="bjj-academy-form">
+            <form id="bjj-academy-form" method="post" action="#">
                 <label>Academy Name:</label>
                 <input type="text" name="name" required />
                 <label>Main Coach Name:</label>
-                <input type="text" name="main_coach_name" />
+                <input type="text" name="main_coach_name" required />
                 <label>Address:</label>
                 <input type="text" name="address" />
                 <label>Email:</label>
@@ -79,7 +80,9 @@ class BJJ_Competition_Shortcodes {
                 <label>Affiliation:</label>
                 <input type="text" name="affiliation" />
                 <label>Icon (URL or Media Library):</label>
-                <input type="text" name="icon" />
+                <input type="text" name="icon" id="academy-icon-field" style="width:300px;" />
+                <button id="academy-icon-button" class="button" type="button">Upload Icon</button>
+                <br><br>
                 <button type="submit" class="button button-primary">Add Academy</button>
             </form>
             <hr/>
@@ -96,7 +99,7 @@ class BJJ_Competition_Shortcodes {
         ?>
         <div class="bjj-competitors">
             <h3>Create / Manage Competitors</h3>
-            <form id="bjj-competitor-form">
+            <form id="bjj-competitor-form" method="post" action="#">
                 <label>Full Name:</label>
                 <input type="text" name="full_name" required />
                 <label>Gender:</label>
@@ -117,7 +120,8 @@ class BJJ_Competition_Shortcodes {
                 <label>Nationality:</label>
                 <input type="text" name="nationality" />
                 <label>Profile Photo (URL or Media Library):</label>
-                <input type="text" name="profile_photo" />
+                <input type="text" name="profile_photo" id="competitor-photo-field" style="width:300px;" />
+                <button id="competitor-photo-button" class="button" type="button">Upload Photo</button>
                 <label>Belt:</label>
                 <select name="belt">
                     <option value="white">White</option>
@@ -131,12 +135,14 @@ class BJJ_Competition_Shortcodes {
                     <option value="black">Black</option>
                 </select>
                 <label>Category:</label>
-                <!-- We'll load categories dynamically, but for now, just a text or placeholder -->
-                <select name="category_id" id="bjj-competitor-category"></select>
-                
+                <select name="category_id" id="bjj-competitor-category">
+                    <!-- Options loaded via AJAX -->
+                </select>
                 <label>Academy:</label>
-                <select name="academy_id" id="bjj-competitor-academy"></select>
-
+                <select name="academy_id" id="bjj-competitor-academy">
+                    <!-- Options loaded via AJAX -->
+                </select>
+                <br><br>
                 <button type="submit" class="button button-primary">Add Competitor</button>
             </form>
             <hr/>
@@ -153,7 +159,7 @@ class BJJ_Competition_Shortcodes {
         ?>
         <div class="bjj-mats">
             <h3>Create / Manage Mats</h3>
-            <form id="bjj-mat-form">
+            <form id="bjj-mat-form" method="post" action="#">
                 <label>Mat Name/Number:</label>
                 <input type="text" name="mat_name" required />
                 <button type="submit" class="button button-primary">Add Mat</button>
@@ -169,8 +175,12 @@ class BJJ_Competition_Shortcodes {
 
     public function render_matchmaking() {
         ob_start();
-        echo '<h3>Matchmaking Shortcode</h3>';
-        // You can create a custom UI for matchmaking
+        ?>
+        <div class="bjj-matchmaking">
+            <h3>Matchmaking</h3>
+            <p>This section can be used for pairing competitors or managing fight schedules.</p>
+        </div>
+        <?php
         return ob_get_clean();
     }
 
@@ -178,8 +188,8 @@ class BJJ_Competition_Shortcodes {
         ob_start();
         ?>
         <div class="bjj-bracket">
-            <h3>Bracket Shortcode</h3>
-            <p>This can embed a 3rd-party bracket plugin using a separate shortcode or custom logic.</p>
+            <h3>Bracket</h3>
+            <p>This section can be used to display brackets. You may embed a third-party bracket plugin via shortcode if needed.</p>
         </div>
         <?php
         return ob_get_clean();
@@ -190,9 +200,9 @@ class BJJ_Competition_Shortcodes {
         ?>
         <div class="bjj-schedule">
             <h3>Schedule Matches</h3>
-            <p>Drag and drop to set fight order, assign mat, set time, etc.</p>
+            <p>Drag and drop to set fight order, assign mats, and set fight times.</p>
             <div id="bjj-schedule-list">
-                <!-- Schedule items load via AJAX with drag/drop to reorder -->
+                <!-- Schedule items load via AJAX -->
             </div>
         </div>
         <?php
@@ -205,7 +215,7 @@ class BJJ_Competition_Shortcodes {
         <div class="bjj-results">
             <h3>Enter / View Results</h3>
             <div id="bjj-results-list">
-                <!-- Ongoing and completed fights load here. Admin can pick a winner, points, or submission. -->
+                <!-- Ongoing and completed matches load via AJAX -->
             </div>
         </div>
         <?php

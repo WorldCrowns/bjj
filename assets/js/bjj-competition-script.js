@@ -1,70 +1,61 @@
 jQuery(document).ready(function($) {
 
-    // ========== CATEGORIES ==========
-    // Add Category
-    $('#bjj-category-form').on('submit', function(e) {
+    // --- WP Media Uploader for Academy Icon field ---
+    let file_frame;
+    $('#academy-icon-button').on('click', function(e) {
         e.preventDefault();
-        let data = {
-            action: 'bjj_add_category',
+
+        // Reopen existing frame if available
+        if (file_frame) {
+            file_frame.open();
+            return;
+        }
+
+        // Create new media frame
+        file_frame = wp.media({
+            title: 'Select or Upload an Icon',
+            button: { text: 'Use this icon' },
+            multiple: false
+        });
+
+        // When an image is selected, get its URL and set it in the field
+        file_frame.on('select', function() {
+            const attachment = file_frame.state().get('selection').first().toJSON();
+            $('#academy-icon-field').val(attachment.url);
+        });
+
+        // Open the media uploader
+        file_frame.open();
+    });
+
+    // --- AJAX: Submit Academy Form ---
+    $('#bjj-academy-form').on('submit', function(e) {
+        e.preventDefault();
+
+        // Build form data
+        const formData = {
+            action: 'bjj_add_academy',  // Matches the AJAX handler action in PHP
             nonce: bjjCompetitionAjax.nonce,
-            category_name: $(this).find('input[name="category_name"]').val(),
-            belt_division: $(this).find('input[name="belt_division"]').val()
+            name:        $(this).find('input[name="name"]').val(),
+            main_coach:  $(this).find('input[name="main_coach_name"]').val(),
+            address:     $(this).find('input[name="address"]').val(),
+            email:       $(this).find('input[name="email"]').val(),
+            phone:       $(this).find('input[name="phone"]').val(),
+            affiliation: $(this).find('input[name="affiliation"]').val(),
+            icon:        $(this).find('input[name="icon"]').val()
         };
-        $.post(bjjCompetitionAjax.ajaxUrl, data, function(response){
-            if(response.success) {
+
+        // Send data via AJAX
+        $.post(bjjCompetitionAjax.ajaxUrl, formData, function(response) {
+            if (response.success) {
                 alert(response.data.message);
-                $('#bjj-category-form')[0].reset();
-                loadCategories();
+                // Optionally, reset the form or reload the academy list
+                $('#bjj-academy-form')[0].reset();
             } else {
-                alert('Error adding category');
+                alert('Error: ' + (response.data.message || 'Unknown error'));
             }
         });
     });
 
-    // Load Categories
-    function loadCategories() {
-        let data = {
-            action: 'bjj_get_categories',
-            nonce: bjjCompetitionAjax.nonce
-        };
-        $.post(bjjCompetitionAjax.ajaxUrl, data, function(response){
-            if(response.success) {
-                let list = response.data;
-                let html = '<table class="widefat"><thead><tr><th>ID</th><th>Category Name</th><th>Belt Division</th><th>Actions</th></tr></thead><tbody>';
-                $.each(list, function(i, cat){
-                    html += '<tr>';
-                    html += '<td>' + cat.id + '</td>';
-                    html += '<td>' + cat.category_name + '</td>';
-                    html += '<td>' + cat.belt_division + '</td>';
-                    html += '<td><button class="button bjj-delete-category" data-id="'+ cat.id +'">Delete</button></td>';
-                    html += '</tr>';
-                });
-                html += '</tbody></table>';
-                $('#bjj-category-list').html(html);
-            }
-        });
-    }
-    loadCategories();
-
-    // Delete Category
-    $(document).on('click', '.bjj-delete-category', function(){
-        if(!confirm('Are you sure you want to delete this category?')) return;
-        let id = $(this).data('id');
-        let data = {
-            action: 'bjj_delete_category',
-            nonce: bjjCompetitionAjax.nonce,
-            id: id
-        };
-        $.post(bjjCompetitionAjax.ajaxUrl, data, function(response){
-            if(response.success) {
-                alert(response.data.message);
-                loadCategories();
-            } else {
-                alert('Error deleting category');
-            }
-        });
-    });
-
-    // ========== Repeat similar patterns for Academies, Competitors, etc. ==========
-
+    // --- Additional JS for other sections (categories, competitors, etc.) would follow a similar pattern ---
 });

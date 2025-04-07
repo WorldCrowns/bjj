@@ -10,13 +10,52 @@ class BJJ_Competition_AJAX {
         add_action( 'wp_ajax_bjj_add_category', array( $this, 'bjj_add_category' ) );
         add_action( 'wp_ajax_bjj_get_categories', array( $this, 'bjj_get_categories' ) );
         add_action( 'wp_ajax_bjj_delete_category', array( $this, 'bjj_delete_category' ) );
-        // Similarly for academies, competitors, mats, etc.
-        
-        // Reset all data
+
+        // Academy CRUD
+        add_action( 'wp_ajax_bjj_add_academy', array( $this, 'bjj_add_academy' ) );
+        // You can add more AJAX actions for listing, editing, deleting academies as needed
+
+        // Reset All Data
         add_action( 'wp_ajax_bjj_competition_reset_all', array( $this, 'bjj_competition_reset_all' ) );
     }
 
-    // Example: Add Category
+    // --- Example: Add Academy ---
+    public function bjj_add_academy() {
+        check_ajax_referer( 'bjj_competition_nonce', 'nonce' );
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'bjj_competition_academies';
+
+        $name        = sanitize_text_field( $_POST['name'] );
+        $main_coach  = sanitize_text_field( $_POST['main_coach'] );
+        $address     = sanitize_text_field( $_POST['address'] );
+        $email       = sanitize_email( $_POST['email'] );
+        $phone       = sanitize_text_field( $_POST['phone'] );
+        $affiliation = sanitize_text_field( $_POST['affiliation'] );
+        $icon        = esc_url_raw( $_POST['icon'] );
+
+        $result = $wpdb->insert(
+            $table,
+            array(
+                'name'             => $name,
+                'main_coach_name'  => $main_coach,
+                'address'          => $address,
+                'email'            => $email,
+                'phone'            => $phone,
+                'affiliation'      => $affiliation,
+                'icon'             => $icon
+            ),
+            array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+        );
+
+        if ( $result ) {
+            wp_send_json_success( array( 'message' => 'Academy added successfully.' ) );
+        } else {
+            wp_send_json_error( array( 'message' => 'Error adding academy.' ) );
+        }
+    }
+
+    // --- Example: Add Category (existing handlers) ---
     public function bjj_add_category() {
         check_ajax_referer( 'bjj_competition_nonce', 'nonce' );
 
@@ -38,7 +77,6 @@ class BJJ_Competition_AJAX {
         wp_send_json_success( array( 'message' => 'Category added successfully.' ) );
     }
 
-    // Example: Get Categories
     public function bjj_get_categories() {
         check_ajax_referer( 'bjj_competition_nonce', 'nonce' );
         global $wpdb;
@@ -47,7 +85,6 @@ class BJJ_Competition_AJAX {
         wp_send_json_success( $results );
     }
 
-    // Example: Delete Category
     public function bjj_delete_category() {
         check_ajax_referer( 'bjj_competition_nonce', 'nonce' );
         global $wpdb;
@@ -57,11 +94,9 @@ class BJJ_Competition_AJAX {
         wp_send_json_success( array( 'message' => 'Category deleted.' ) );
     }
 
-    // Example: Reset All
     public function bjj_competition_reset_all() {
         check_ajax_referer( 'bjj_competition_nonce', 'nonce' );
         global $wpdb;
-        // Truncate the main competition tables
         $tables = array(
             'bjj_competition_categories',
             'bjj_competition_academies',
@@ -74,7 +109,6 @@ class BJJ_Competition_AJAX {
         foreach( $tables as $tbl ) {
             $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}{$tbl}" );
         }
-
         wp_send_json_success( array( 'message' => 'All data has been reset.' ) );
     }
 }
