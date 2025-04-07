@@ -57,5 +57,29 @@ jQuery(document).ready(function($) {
         });
     });
 
+    // --- AJAX: Submit Category Form ---
+    $('#bjj-category-form').on('submit', function(e) {
+        e.preventDefault();
+
+        // Build form data
+        const formData = {
+            action: 'bjj_add_category',  // Matches the AJAX handler action in PHP
+            nonce: bjjCompetitionAjax.nonce,
+            category_name: $(this).find('input[name="category_name"]').val(),
+            belt_division: $(this).find('input[name="belt_division"]').val(),
+        };
+
+        // Send data via AJAX
+        $.post(bjjCompetitionAjax.ajaxUrl, formData, function(response) {
+            if (response.success) {
+                alert(response.data.message);
+                // Optionally, reset the form or reload the category list
+                $('#bjj-category-form')[0].reset();
+            } else {
+                alert('Error: ' + (response.data.message || 'Unknown error'));
+            }
+        });
+    });
+
     // --- Additional JS for other sections (categories, competitors, etc.) would follow a similar pattern ---
 });
